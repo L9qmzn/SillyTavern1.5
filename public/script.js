@@ -8260,6 +8260,11 @@ const CONNECT_API_MAP = {
         button: '#api_button_openai',
         source: chat_completion_sources.COHERE,
     },
+    'lingapi': {
+        selected: 'openai',
+        button: '#api_button_openai',
+        source: chat_completion_sources.LINGAPI,
+    },
     'infermaticai': {
         selected: 'textgenerationwebui',
         button: '#api_button_textgenerationwebui',

@@ -458,7 +458,7 @@
                                         </span>
                                     </div>
                                 </div>
-                                <div class="range-block" data-source="openai,claude,windowai,openrouter,ai21,scale,makersuite,mistralai,custom,cohere">
+                                <div class="range-block" data-source="openai,claude,windowai,openrouter,ai21,scale,makersuite,mistralai,custom,cohere,lingapi">
                                     <div class="range-block-title" data-i18n="Temperature">
                                         Temperature
                                     </div>
@@ -471,7 +471,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div data-newbie-hidden class="range-block" data-source="openai,openrouter,ai21,custom,cohere">
+                                <div data-newbie-hidden class="range-block" data-source="openai,openrouter,ai21,custom,cohere,lingapi">
                                     <div class="range-block-title" data-i18n="Frequency Penalty">
                                         Frequency Penalty
                                     </div>
@@ -484,7 +484,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div data-newbie-hidden class="range-block" data-source="openai,openrouter,ai21,custom,cohere">
+                                <div data-newbie-hidden class="range-block" data-source="openai,openrouter,ai21,custom,cohere,lingapi">
                                     <div class="range-block-title" data-i18n="Presence Penalty">
                                         Presence Penalty
                                     </div>
@@ -510,7 +510,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div data-newbie-hidden class="range-block" data-source="claude,openrouter,ai21,makersuite,cohere">
+                                <div data-newbie-hidden class="range-block" data-source="claude,openrouter,ai21,makersuite,cohere,lingapi">
                                     <div class="range-block-title" data-i18n="Top K">
                                         Top K
                                     </div>
@@ -523,7 +523,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div data-newbie-hidden class="range-block" data-source="openai,claude,openrouter,ai21,scale,makersuite,mistralai,custom,cohere">
+                                <div data-newbie-hidden class="range-block" data-source="openai,claude,openrouter,ai21,scale,makersuite,mistralai,custom,cohere,lingapi">
                                     <div class="range-block-title" data-i18n="Top-p">
                                         Top P
                                     </div>
@@ -759,7 +759,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div data-newbie-hidden class="range-block" data-source="openai,openrouter,mistralai,custom,cohere">
+                                <div data-newbie-hidden class="range-block" data-source="openai,openrouter,mistralai,custom,cohere,lingapi">
                                     <div class="range-block-title justifyLeft" data-i18n="Seed">
                                         Seed
                                     </div>
@@ -1735,7 +1735,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="range-block" data-source="openai,openrouter,makersuite,claude,custom">
+                                    <div class="range-block" data-source="openai,openrouter,makersuite,claude,custom,lingapi">
                                         <label for="openai_image_inlining" class="checkbox_label flexWrap widthFreeExpand">
                                             <input id="openai_image_inlining" type="checkbox" />
                                             <span data-i18n="Send inline images">Send inline images</span>
@@ -1762,7 +1762,7 @@
                                             <span data-i18n="Use the appropriate tokenizer for Google models via their API. Slower prompt processing, but offers much more accurate token counting.">Use the appropriate tokenizer for Google models via their API. Slower prompt processing, but offers much more accurate token counting.</span>
                                         </div>
                                     </div>
-                                    <div data-newbie-hidden class="range-block" data-source="claude">
+                                    <div data-newbie-hidden class="range-block" data-source="claude,lingapi">
                                         <div class="wide100p">
                                             <span id="claude_assistant_prefill_text" data-i18n="Assistant Prefill">Assistant Prefill</span>
                                             <textarea id="claude_assistant_prefill" class="text_pole textarea_compact" name="assistant_prefill autoSetHeight" rows="3" maxlength="10000" data-i18n="[placeholder]Start Claude's answer with..." placeholder="Start Claude's answer with..."></textarea>
@@ -2273,6 +2273,7 @@
                             <optgroup>
                                 <option value="openai">OpenAI</option>
                                 <option value="custom">Custom (OpenAI-compatible)</option>
+                                <option value="lingapi">LingAPI</option>
                             </optgroup>
                             <optgroup>
                                 <option value="ai21">AI21</option>
@@ -2285,7 +2286,7 @@
                                 <option value="windowai">Window AI</option>
                             </optgroup>
                         </select>
-                        <div data-newbie-hidden class="inline-drawer wide100p" data-source="openai,claude,mistralai">
+                        <div data-newbie-hidden class="inline-drawer wide100p" data-source="openai,claude,mistralai,lingapi">
                             <div class="inline-drawer-toggle inline-drawer-header">
                                 <b data-i18n="Reverse Proxy">Reverse Proxy</b>
                                 <div class="fa-solid fa-circle-chevron-down inline-drawer-icon down"></div>
@@ -2728,6 +2729,64 @@
                             <h4 data-i18n="Available Models">Available Models</h4>
                             <div class="flex-container">
                                 <select id="model_custom_select" class="text_pole"></select>
+                            </div>
+                        </form>
+                        <!-- <form id="lingapi_form" data-source="lingapi">
+                            <h4 data-i18n="LING API Endpoint (Base URL)">LING API Endpoint (Base URL)</h4>
+                            <div class="flex-container">
+                                <input id="lingapi_api_url_text" class="text_pole wide100p" maxlength="500" value="" autocomplete="off" placeholder="Example: http://localhost:1234/v1">
+                            </div>
+                            <div>
+                                <small>
+                                    Doesn't work? Try adding <code>/v1</code> at the end of the URL!
+                                </small>
+                            </div>
+                            <h4>
+                                <span data-i18n="Ling API Key">LING API Key</span>
+                            </h4>
+                            <div class="flex-container">
+                                <input id="api_key_lingapi" name="api_key_lingapi" class="text_pole flex1" maxlength="500" value="" type="text" autocomplete="off">
+                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_lingapi"></div>
+                            </div>
+                            <div data-for="api_key_lingapi" class="neutral_warning">
+                                For privacy reasons, your API key will be hidden after you reload the page.
+                            </div>
+                            <h4>Enter a Model ID</h4>
+                            <div class="flex-container">
+                                <input id="lingapi_model_id" class="text_pole wide100p" maxlength="500" value="" autocomplete="off" placeholder="Example: gpt-3.5-turbo">
+                            </div>
+                            <h4 data-i18n="Available Models">Available Models</h4>
+                            <div class="flex-container">
+                                <select id="model_lingapi_select" class="text_pole"></select>
+                            </div>
+                        </form> -->
+                        <form id="lingapi_form" data-source="lingapi" action="javascript:void(null);">
+                            <h4 data-i18n="Ling-API Key">Ling-API API Key</h4>
+                            <div class="flex-container">
+                                <input id="api_key_lingapi" name="api_key_lingapi" class="text_pole flex1" maxlength="500" value="" type="text" autocomplete="off">
+                                <div title="Clear your API key" data-i18n="[title]Clear your API key" class="menu_button fa-solid fa-circle-xmark clear-api-key" data-key="api_key_lingapi"></div>
+                            </div>
+                            <div data-for="api_key_lingapi" class="neutral_warning">
+                                For privacy reasons, your API key will be hidden after you reload the page.
+                            </div>
+                            <div>
+                                <h4 data-i18n="LINGAPI Model">Ling-API Model</h4>
+                                <select id="model_lingapi_select">
+                                    <optgroup label="ling">
+                                        <option value="ling-moon">ling-moon</option>
+                                        <option value="ling-solar">ling-solar</option>
+                                        <option value="ling-galaxy">ling-galaxy</option>
+                                    </optgroup>
+                                    <optgroup label="openai">
+                                        <option value="gpt-4-turbo">gpt-4-turbo</option>
+                                        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                                    </optgroup>
+                                    <optgroup label="anthropic">
+                                        <option value="claude-3-haiku-20240307">claude-3-haiku-20240307</option>
+                                        <option value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</option>
+                                        <option value="claude-3-opus-20240229">claude-3-opus-20240229</option>
+                                    </optgroup>
+                                </select>
                             </div>
                         </form>
                         <div class="flex-container flex">

@@ -36,6 +36,7 @@ const SECRET_KEYS = {
     KOBOLDCPP: 'api_key_koboldcpp',
     LLAMACPP: 'api_key_llamacpp',
     COHERE: 'api_key_cohere',
+    LINGAPI: 'api_key_lingapi',
 };
 
 // These are the keys that are safe to expose, even if allowKeysExposure is false

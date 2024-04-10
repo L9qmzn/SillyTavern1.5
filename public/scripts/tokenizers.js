@@ -403,6 +403,9 @@ export function getTokenizerModel() {
     if (oai_settings.chat_completion_source == chat_completion_sources.CUSTOM) {
         return oai_settings.custom_model;
     }
+    if (oai_settings.chat_completion_source == chat_completion_sources.LINGAPI) {
+        return oai_settings.custom_model;
+    }
 
     // Default to Turbo 3.5
     return turboTokenizer;

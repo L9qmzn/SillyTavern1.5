@@ -163,6 +163,7 @@ const CHAT_COMPLETION_SOURCES = {
     MISTRALAI: 'mistralai',
     CUSTOM: 'custom',
     COHERE: 'cohere',
+    LINGAPI: 'lingapi',
 };
 
 const UPLOADS_PATH = './uploads';

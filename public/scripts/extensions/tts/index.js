@@ -13,6 +13,8 @@ import { OpenAITtsProvider } from './openai.js';
 import { XTTSTtsProvider } from './xtts.js';
 import { AllTalkTtsProvider } from './alltalk.js';
 import { SpeechT5TtsProvider } from './speecht5.js';
+import { LingTtsProvider } from './ling.js';
+import { GSVITtsProvider } from './gsvi.js';
 export { talkingAnimation };
 
 const UPDATE_INTERVAL = 1000;
@@ -78,6 +80,8 @@ let ttsProviders = {
     OpenAI: OpenAITtsProvider,
     AllTalk: AllTalkTtsProvider,
     SpeechT5: SpeechT5TtsProvider,
+    ling_tts: LingTtsProvider,
+    GSVI: GSVITtsProvider,
 };
 let ttsProvider;
 let ttsProviderName;

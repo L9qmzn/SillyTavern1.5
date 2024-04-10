@@ -14,6 +14,189 @@ const API_OPENAI = 'https://api.openai.com/v1';
 const API_CLAUDE = 'https://api.anthropic.com/v1';
 const API_MISTRAL = 'https://api.mistral.ai/v1';
 const API_COHERE = 'https://api.cohere.ai/v1';
+const API_LINGAPI = 'http://101.42.5.161:8444/v1';
+// const API_LINGAPI = 'https://ling-api.com/v1';
+
+/**
+ * Sends a request to MistralAI API.
+ * @param {express.Request} request Express request
+ * @param {express.Response} response Express response
+ */
+function sendLINGAPIRequest(request, response) {
+
+    let apiUrl;
+    let apiKey;
+    let headers;
+    let bodyParams;
+
+    apiUrl = API_LINGAPI;
+    apiKey = readSecret(SECRET_KEYS.LINGAPI);
+    headers = {};
+    bodyParams = {
+        logprobs: request.body.logprobs,
+    };
+
+    if (!apiKey) {
+        console.log('Ling API API key is missing.');
+        return response.status(400).send({ error: true });
+    }
+
+    // Add custom stop sequences
+    if (Array.isArray(request.body.stop) && request.body.stop.length > 0) {
+        bodyParams['stop'] = request.body.stop;
+    }
+
+    const endpointUrl = `${apiUrl}/chat/completions`;
+    console.log(endpointUrl)
+    const controller = new AbortController();
+        request.socket.removeAllListeners('close');
+        request.socket.on('close', function () {
+            controller.abort();
+        });
+
+    let requestBody = {}
+
+    if(request.body.model.toLowerCase().includes('claude')){
+        //console.log(request.body.claude_use_sysprompt);
+        let use_system_prompt = (request.body.model.startsWith('claude-2') || request.body.model.startsWith('claude-3')) && request.body.claude_use_sysprompt;
+        let converted_prompt = convertClaudeMessages(request.body.messages, request.body.assistant_prefill, use_system_prompt, request.body.human_sysprompt_message, request.body.char_name, request.body.user_name);
+        // Add custom stop sequences
+        const stopSequences = ['\n\nHuman:', '\n\nSystem:', '\n\nAssistant:'];
+        if (Array.isArray(request.body.stop)) {
+            stopSequences.push(...request.body.stop);
+        }
+
+        requestBody = {
+            messages: converted_prompt.messages,
+            model: request.body.model,
+            max_tokens: request.body.max_tokens,
+            stop_sequences: stopSequences,
+            temperature: request.body.temperature,
+            top_p: request.body.top_p,
+            top_k: request.body.top_k,
+            stream: request.body.stream,
+            system: '',
+        };
+
+        if (use_system_prompt) {
+            requestBody.system = converted_prompt.systemPrompt;
+        }
+        else{
+            requestBody.system = undefined;
+        }
+        console.log('Claude request:', requestBody);
+
+    }
+    else
+    {
+        requestBody = {
+            messages: request.body.messages,
+            model: request.body.model,
+            temperature: request.body.temperature,
+            max_tokens: request.body.max_tokens,
+            stream: request.body.stream,
+            presence_penalty: request.body.presence_penalty,
+            frequency_penalty: request.body.frequency_penalty,
+            top_p: request.body.top_p,
+            top_k: request.body.top_k,
+            stop: request.body.stop,
+            //'logit_bias': request.body.logit_bias,
+            seed: request.body.seed,
+            n: request.body.n,
+            ...bodyParams,
+        };
+    }
+    //最终发送体
+    /** @type {import('node-fetch').RequestInit} */
+    const config = {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiKey,
+            ...headers,
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+        timeout: 0,
+    };
+
+    console.log(requestBody);
+
+    makeRequest(config, response, request);
+
+    /**
+     * Makes a fetch request to the OpenAI API endpoint.
+     * @param {import('node-fetch').RequestInit} config Fetch config
+     * @param {express.Response} response Express response
+     * @param {express.Request} request Express request
+     * @param {Number} retries Number of retries left
+     * @param {Number} timeout Request timeout in ms
+     */
+    async function makeRequest(config, response, request, retries = 5, timeout = 5000) {
+        try {
+            const fetchResponse = await fetch(endpointUrl, config);
+
+            if (request.body.stream) {
+                console.log('Streaming request in progress');
+                forwardFetchResponse(fetchResponse, response);
+                return;
+            }
+
+            if (fetchResponse.ok) {
+                let json = await fetchResponse.json();
+                response.send(json);
+                console.log(json);
+                console.log(json?.choices?.[0]?.message);
+            } else if (fetchResponse.status === 429 && retries > 0) {
+                console.log(`Out of quota, retrying in ${Math.round(timeout / 1000)}s`);
+                setTimeout(() => {
+                    timeout *= 2;
+                    makeRequest(config, response, request, retries - 1, timeout);
+                }, timeout);
+            } else {
+                await handleErrorResponse(fetchResponse);
+            }
+        } catch (error) {
+            console.log('Generation failed', error);
+            if (!response.headersSent) {
+                response.send({ error: true });
+            } else {
+                response.end();
+            }
+        }
+    }
+
+    /**
+     * @param {import("node-fetch").Response} errorResponse
+     */
+    async function handleErrorResponse(errorResponse) {
+        const responseText = await errorResponse.text();
+        const errorData = tryParse(responseText);
+
+        const statusMessages = {
+            400: 'Bad request',
+            401: 'Unauthorized',
+            402: 'Credit limit reached',
+            403: 'Forbidden',
+            404: 'Not found',
+            429: 'Too many requests',
+            451: 'Unavailable for legal reasons',
+            502: 'Bad gateway',
+        };
+
+        const message = errorData?.error?.message || statusMessages[errorResponse.status] || 'Unknown error occurred';
+        const quota_error = errorResponse.status === 429 && errorData?.error?.type === 'insufficient_quota';
+        console.log(message);
+
+        if (!response.headersSent) {
+            response.send({ error: { message }, quota_error: quota_error });
+        } else if (!response.writableEnded) {
+            response.write(errorResponse);
+        } else {
+            response.end();
+        }
+    }
+}
 
 /**
  * Ollama strikes back. Special boy #2's steaming routine.
@@ -628,6 +811,11 @@ router.post('/status', jsonParser, async function (request, response_getstatus_o
         api_key_openai = readSecret(SECRET_KEYS.CUSTOM);
         headers = {};
         mergeObjectWithYaml(headers, request.body.custom_include_headers);
+    } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.LINGAPI) {
+        api_url = API_LINGAPI;
+        api_key_openai = readSecret(SECRET_KEYS.LINGAPI);
+        console.log(api_key_openai);
+        headers = {};
     } else if (request.body.chat_completion_source === CHAT_COMPLETION_SOURCES.COHERE) {
         api_url = API_COHERE;
         api_key_openai = readSecret(SECRET_KEYS.COHERE);
@@ -637,7 +825,11 @@ router.post('/status', jsonParser, async function (request, response_getstatus_o
         return response_getstatus_openai.status(400).send({ error: true });
     }
 
-    if (!api_key_openai && !request.body.reverse_proxy && request.body.chat_completion_source !== CHAT_COMPLETION_SOURCES.CUSTOM) {
+    console.log(request.body.chat_completion_source);
+    console.log(api_url);
+    console.log(api_key_openai);
+
+    if (!api_key_openai && !request.body.reverse_proxy && request.body.chat_completion_source !== CHAT_COMPLETION_SOURCES.CUSTOM && request.body.chat_completion_source !== CHAT_COMPLETION_SOURCES.LINGAPI) {
         console.log('OpenAI API key is missing.');
         return response_getstatus_openai.status(400).send({ error: true });
     }
@@ -785,6 +977,7 @@ router.post('/generate', jsonParser, function (request, response) {
         case CHAT_COMPLETION_SOURCES.MAKERSUITE: return sendMakerSuiteRequest(request, response);
         case CHAT_COMPLETION_SOURCES.MISTRALAI: return sendMistralAIRequest(request, response);
         case CHAT_COMPLETION_SOURCES.COHERE: return sendCohereRequest(request, response);
+        case CHAT_COMPLETION_SOURCES.LINGAPI: return sendLINGAPIRequest(request, response);
     }
 
     let apiUrl;
